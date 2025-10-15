@@ -18,22 +18,11 @@ jobs:
     name: build-and-push
     runs-on: ubuntu-latest
     steps:
-      # ✅ Checkout the caller repository (your app code)
       - name: Checkout caller repository
         uses: actions/checkout@v4
         with:
           repository: ${{ github.repository }}
           ref: ${{ github.ref }}
-
-      - name: Debug directory (verify pom.xml)
-        run: |
-          echo "Current directory: $(pwd)"
-          ls -la
-          echo "Checking for pom.xml..."
-          if [ ! -f pom.xml ]; then
-            echo "❌ pom.xml not found!"
-            exit 1
-          fi
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -83,4 +72,7 @@ jobs:
             --admin
 
       - name: Deploy to AKS
-        run: kubectl apply -f ds.yml --validate=false
+        run: |
+          echo "Deploying application to production..."
+          kubectl apply -f ds.yml --validate=false
+          kubectl rollout status deployment/bankapp-deployment --timeout=120s || true
